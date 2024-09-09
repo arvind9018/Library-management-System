@@ -1,0 +1,194 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+class Book {
+private:
+    int id;
+    string title;
+    string author;
+    bool isIssued;
+    string issuedTo;
+
+public:
+    Book(int id, string title, string author) : id(id), title(title), author(author), isIssued(false) {}
+
+    int getId() { return id; }
+    string getTitle() { return title; }
+    string getAuthor() { return author; }
+    bool getStatus() { return isIssued; }
+    string getIssuedTo() { return issuedTo; }
+
+    void issueBook(string studentName) {
+        isIssued = true;
+        issuedTo = studentName;
+    }
+
+    void returnBook() {
+        isIssued = false;
+        issuedTo = "";
+    }
+};
+class Library {
+private:
+    vector<Book> books;
+public:
+    void addBook(int id, string title, string author) {
+        books.push_back(Book(id, title, author));
+    }
+    Book* searchBookByID(int id) {
+        for (auto &book : books) {
+            if (book.getId() == id) {
+                return &book;
+            }
+        }
+        return nullptr;
+    }
+    Book* searchBookByTitle(string title) {
+        for (auto &book : books) {
+            if (book.getTitle() == title) {
+                return &book;
+            }
+        }
+        return nullptr;
+    }
+    void issueBook(int id, string studentName) {
+        Book* book = searchBookByID(id);
+        if (book && !book->getStatus()) {
+            book->issueBook(studentName);
+            cout << "Book issued to " << studentName << endl;
+        } else {
+            cout << "Book not available for issuing" << endl;
+        }
+    }
+
+    void returnBook(int id) {
+        Book* book = searchBookByID(id);
+        if (book && book->getStatus()) {
+            book->returnBook();
+            cout << "Book returned successfully" << endl;
+        } else {
+            cout << "Book not issued" << endl;
+        }
+    }
+
+    void listAllBooks() {
+        sort(books.begin(), books.end(), [](Book &a, Book &b) {
+            return a.getTitle() < b.getTitle();
+        });
+
+        for (auto &book : books) {
+            cout << "ID: " << book.getId() << ", Title: " << book.getTitle()
+                 << ", Author: " << book.getAuthor() << ", Status: "
+                 << (book.getStatus() ? "Issued" : "Available") << endl;
+        }
+    }
+
+    void deleteBook(int id) {
+        books.erase(remove_if(books.begin(), books.end(), [id](Book &book) {
+            return book.getId() == id;
+        }), books.end());
+        cout << "Book deleted successfully" << endl;
+    }
+};
+
+int displayMenu() {
+    int choice;
+    cout << "\nLibrary Management System\n";
+    cout << "1. Add a Book\n";
+    cout << "2. Search a Book by ID\n";
+    cout << "3. Search a Book by Title\n";
+    cout << "4. Issue a Book\n";
+    cout << "5. Return a Book\n";
+    cout << "6. List All Books\n";
+    cout << "7. Delete a Book\n";
+    cout << "8. Exit\n";
+    cout << "Enter your choice: ";
+    cin >> choice;
+    return choice;
+}
+
+int main() {
+    Library library;
+    int choice, id;
+    string title, author, studentName;
+
+    while (true) {
+        choice = displayMenu();
+
+        switch (choice) {
+        case 1:
+            cout << "Enter book ID: ";
+            cin >> id;
+            cin.ignore(); 
+            cout << "Enter book title: ";
+            getline(cin, title);
+            cout << "Enter book author: ";
+            getline(cin, author);
+            library.addBook(id, title, author);
+            cout << "Book added successfully\n";
+            break;
+
+        case 2:
+            cout << "Enter book ID: ";
+            cin >> id;
+            if (Book* book = library.searchBookByID(id)) {
+                cout << "Book found - ID: " << book->getId() << ", Title: " << book->getTitle()
+                     << ", Author: " << book->getAuthor() << ", Status: "
+                     << (book->getStatus() ? "Issued" : "Available") << endl;
+            } else {
+                cout << "Book not found\n";
+            }
+            break;
+
+        case 3:
+            cin.ignore(); 
+            cout << "Enter book title: ";
+            getline(cin, title);
+            if (Book* book = library.searchBookByTitle(title)) {
+                cout << "Book found - ID: " << book->getId() << ", Title: " << book->getTitle()
+                     << ", Author: " << book->getAuthor() << ", Status: "
+                     << (book->getStatus() ? "Issued" : "Available") << endl;
+            } else {
+                cout << "Book not found\n";
+            }
+            break;
+
+        case 4:
+            cout << "Enter book ID: ";
+            cin >> id;
+            cin.ignore(); 
+            cout << "Enter student's name: ";
+            getline(cin, studentName);
+            library.issueBook(id, studentName);
+            break;
+
+        case 5:
+            cout << "Enter book ID: ";
+            cin >> id;
+            library.returnBook(id);
+            break;
+
+        case 6:
+            cout << "Listing all books:\n";
+            library.listAllBooks();
+            break;
+
+        case 7:
+            cout << "Enter book ID: ";
+            cin >> id;
+            library.deleteBook(id);
+            break;
+
+        case 8:
+            cout << "Exiting...\n";
+            return 0;
+
+        default:
+            cout << "Invalid choice. Please try again.\n";
+        }
+    }
+
+    return 0;
+}
